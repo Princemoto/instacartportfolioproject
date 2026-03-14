@@ -568,18 +568,21 @@ FROM customer_orders;
 -- COMMAND ----------
 
 -- 5.2.1 Total Orders
+CREATE OR REPLACE TABLE gold_total_orders AS
 SELECT COUNT(DISTINCT order_id) AS total_orders
 FROM gold_fact_order_lines;
 
 -- COMMAND ----------
 
 -- 5.2.2 Avg Orders per Customer
+CREATE OR REPLACE TABLE gold_avg_orders_per_customer AS
 SELECT ROUND(AVG(total_orders),2) AS avg_orders_per_customer
 FROM gold_dim_customers;
 
 -- COMMAND ----------
 
 -- 5.2.3 Total Customers
+CREATE OR REPLACE TABLE gold_total_customers AS
 SELECT COUNT(DISTINCT user_id) AS total_customers
 FROM gold_fact_order_lines;
 
@@ -587,6 +590,7 @@ FROM gold_fact_order_lines;
 -- COMMAND ----------
 
 -- 5.2.4 Percentage of repeat customers
+CREATE OR REPLACE TABLE gold_pct_repeat_customers AS
 SELECT 
     ROUND(100.0 * SUM(CASE WHEN total_orders > 1 THEN 1 ELSE 0 END) / COUNT(*), 2) AS pct_repeat_customers
 FROM gold_dim_customers;
@@ -594,6 +598,7 @@ FROM gold_dim_customers;
 -- COMMAND ----------
 
 -- 5.2.5 Reorder Rate
+CREATE OR REPLACE TABLE gold_reorder_rate AS
 SELECT 
     ROUND(AVG(reordered)*100,2) AS reorder_rate
 FROM gold_fact_order_lines;
@@ -603,6 +608,7 @@ FROM gold_fact_order_lines;
 -- COMMAND ----------
 
 -- 5.2.6 Orders by Day of Week
+CREATE OR REPLACE TABLE gold_orders_by_day_of_week AS
 SELECT order_day,COUNT (DISTINCT order_id) AS total_orders
 FROM gold_fact_order_lines
 GROUP BY Order_day
@@ -611,6 +617,7 @@ ORDER BY total_orders DESC
 -- COMMAND ----------
 
 -- 5.2.7 Orders by Hour of Day
+CREATE OR REPLACE TABLE gold_orders_by_hour_of_day AS
 SELECT  order_hour_of_day AS 24hr_clock,
         order_hour_am_pm AS am_pm,
         COUNT (DISTINCT order_id) AS total_orders
@@ -621,7 +628,7 @@ ORDER BY total_orders DESC
 -- COMMAND ----------
 
 -- 5.2.8 Customers by Order Segment
-
+CREATE OR REPLACE TABLE gold_customers_by_order_segment AS
 SELECT c.Customer_Segment,
        COUNT(DISTINCT f.user_id) AS total_customers
 FROM gold_fact_order_lines f 
@@ -634,7 +641,7 @@ ORDER BY total_customers DESC;
 
 -- 5.2.9 Orders by Reorder Cycle (Days Since Last Order)
 -- Total orders grouped by reorder cycle (first order, 0-3 days, 4-7 days,8-14 days,15-21 days,22-30 days etc.)
-
+CREATE OR REPLACE TABLE gold_orders_by_reorder_cycle AS
 SELECT 
     reorder_cycle AS reorder_cycle_label,
     COUNT(*) AS total_orders
@@ -646,6 +653,7 @@ ORDER BY total_orders DESC
 -- COMMAND ----------
 
 -- 5.2.10 Top Products by Orders
+CREATE OR REPLACE TABLE gold_top_products_by_orders AS
 SELECT p.product_name,
       COUNT(*) AS total_orders
 FROM gold_fact_order_lines f
@@ -658,6 +666,7 @@ LIMIT 20;
 -- COMMAND ----------
 
 -- 5.2.11 Top Departments by Orders
+CREATE OR REPLACE TABLE gold_top_departments_by_orders AS
 SELECT p.department_name,
        COUNT(*) AS total_orders
 FROM gold_fact_order_lines f
@@ -671,7 +680,7 @@ LIMIT 20;
 
 -- 5.3 Time-Based Metrics
 --5.3.1 Avg days between orders per customer
-
+CREATE OR REPLACE TABLE gold_avg_days_between_orders AS
 SELECT ROUND(AVG(days_since_prior_order),2) AS avg_days_between_orders
 FROM silver_orders
 WHERE days_since_prior_order IS NOT NULL;
@@ -681,6 +690,7 @@ WHERE days_since_prior_order IS NOT NULL;
 -- COMMAND ----------
 
 -- 5.3.2 Avg days to reorder products
+CREATE OR REPLACE TABLE gold_avg_days_reorder_cycle AS
 SELECT ROUND(AVG(days_since_prior_order),2) AS avg_reorder_cycle
 FROM gold_fact_order_lines
 WHERE reordered = 1;
